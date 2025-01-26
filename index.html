@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etsy Sales Tracker</title>
+    <style>
+        /* CSS styles remain unchanged */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Etsy Sales Tracker</h1>
+            <p>Analyze and track store sales</p>
+        </header>
+
+        <div class="controls">
+            <button onclick="updateSales()">Update Sales</button>
+            <button onclick="exportToExcel()">Export to Excel</button>
+            <button onclick="showUpdateForm()">Add/Edit Store</button>
+            <button onclick="importFromExcel()">Import from Excel</button>
+            <input type="file" id="excelFileInput" style="display: none;" accept=".xlsx, .xls" />
+        </div>
+
+        <table id="salesTable">
+            <thead>
+                <tr>
+                    <th>Store</th>
+                    <th>Previous Sales</th>
+                    <th>Previous Sales Date</th>
+                    <th>New Sales</th>
+                    <th>New Sales Date</th>
+                    <th>Sales Difference</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div id="updateForm" class="update-form" style="display: none;">
+            <h3>Add/Edit Store</h3>
+            <div class="form-group">
+                <label>Store URL</label>
+                <input type="text" id="storeUrl">
+            </div>
+            <div class="form-group">
+                <label>Previous Sales</label>
+                <input type="number" id="previousSales">
+            </div>
+            <div class="form-group">
+                <label>New Sales</label>
+                <input type="number" id="newSales">
+            </div>
+            <button onclick="saveStore()">Save</button>
+        </div>
+    </div>
+
+    <!-- Include the XLSX library for Excel export/import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+
+    <script>
+        // Store data
+        let stores = JSON.parse(localStorage.getItem('stores')) || [];
+
+        // Function to get current date in YYYY-MM-DD format (without time)
+        function getCurrentDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0'); // Add leading zero for single-digit months
+            const day = String(now.getDate()).padStart(2, '0'); // Add leading zero for single-digit days
+            return `${year}-${month}-${day}`; // Format: YYYY-MM-DD
+        }
+
+        // Function to update the table
+        function updateTable() {
+            const tbody = document.getElementById('salesTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            stores.forEach((store, index) => {
+                const salesDifference = store.new - store.previous; // Sales difference
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><a href="${store.url}" target="_blank" class="store-link">${getStoreName(store.url)}</a></td>
+                    <td id="previous-${index}">${store.previous.toLocaleString()}</td>
+                    <td>${store.previousDate}</td>
+                    <td id="new-${index}">${store.new.toLocaleString()}</td>
+                    <td>${store.newDate}</td>
+                    <td>${salesDifference.toLocaleString()}</td>
+                    <td><button onclick="editStore(${index})">Edit</button></td>
+                `;
+            });
+        }
+
+        // Function to edit a store
+        function editStore(index) {
+            const previousCell = document.getElementById(`previous-${index}`);
+            const newCell = document.getElementById(`new-${index}`);
+
+            const previousValue = stores[index].previous;
+            const newValue = stores[index].new;
+
+            // Convert cells to input fields
+            previousCell.innerHTML = `<input type="number" id="edit-previous-${index}" value="${previousValue}">`;
+            newCell.innerHTML = `<input type="number" id="edit-new-${index}" value="${newValue}">`;
+
+            // Add save button
+            const actionCell = previousCell.parentElement.querySelector('td:last-child');
+            actionCell.innerHTML = `<button onclick="saveEdit(${index})">Save</button>`;
+        }
+
+        // Function to save edits
+        function saveEdit(index) {
+            const previousInput = document.getElementById(`edit-previous-${index}`);
+            const newInput = document.getElementById(`edit-new-${index}`);
+
+            const previousValue = parseInt(previousInput.value) || 0;
+            const newValue = parseInt(newInput.value) || 0;
+
+            // Update data
+            stores[index].previous = previousValue;
+            stores[index].new = newValue;
+            stores[index].newDate = getCurrentDate(); // Update new sales date
+
+            // Save changes to localStorage
+            localStorage.setItem('stores', JSON.stringify(stores));
+
+            // Reload table
+            updateTable();
+        }
+
+        // Function to add/edit a store
+        function saveStore() {
+            const url = document.getElementById('storeUrl').value;
+            const previous = parseInt(document.getElementById('previousSales').value) || 0;
+            const newSales = parseInt(document.getElementById('newSales').value) || 0;
+
+            const existingIndex = stores.findIndex(store => store.url === url);
+            if (existingIndex !== -1) {
+                stores[existingIndex] = { 
+                    url, 
+                    previous, 
+                    previousDate: stores[existingIndex].previousDate, // Keep previous date unchanged
+                    new: newSales, 
+                    newDate: getCurrentDate() 
+                };
+            } else {
+                stores.push({ 
+                    url, 
+                    previous, 
+                    previousDate: getCurrentDate(), // Set initial previous date
+                    new: newSales, 
+                    newDate: getCurrentDate() 
+                });
+            }
+
+            localStorage.setItem('stores', JSON.stringify(stores));
+            updateTable();
+            document.getElementById('updateForm').style.display = 'none';
+        }
+
+        // Function to update sales (move new sales to previous and reset new sales)
+        function updateSales() {
+            stores.forEach(store => {
+                store.previous = store.new; // Move new sales to previous
+                store.new = 0; // Reset new sales
+                store.newDate = getCurrentDate(); // Update new sales date
+            });
+
+            localStorage.setItem('stores', JSON.stringify(stores));
+            updateTable();
+        }
+
+        // Function to export data to Excel (XLSX)
+        function exportToExcel() {
+            const wsData = stores.map(store => [
+                getStoreName(store.url),
+                store.previous,
+                store.previousDate,
+                store.new,
+                store.newDate,
+                store.new - store.previous
+            ]);
+
+            const ws = XLSX.utils.aoa_to_sheet([
+                ["Store", "Previous Sales", "Previous Sales Date", "New Sales", "New Sales Date", "Sales Difference"],
+                ...wsData
+            ]);
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sales Data");
+
+            // Save the file
+            XLSX.writeFile(wb, 'etsy_sales.xlsx');
+        }
+
+        // Function to import data from Excel (XLSX)
+        function importFromExcel() {
+            const fileInput = document.getElementById('excelFileInput');
+            fileInput.click(); // Trigger file input click
+
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    // Process the imported data
+                    stores = jsonData.slice(1).map(row => ({
+                        url: row[0] || "", // Ensure URL is a string
+                        previous: parseInt(row[1]) || 0, // Ensure Previous Sales is a number
+                        previousDate: row[2] || getCurrentDate(), // Ensure Previous Sales Date is a string
+                        new: parseInt(row[3]) || 0, // Ensure New Sales is a number
+                        newDate: row[4] || getCurrentDate() // Ensure New Sales Date is a string
+                    }));
+
+                    // Save to localStorage and update the table
+                    localStorage.setItem('stores', JSON.stringify(stores));
+                    updateTable();
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Function to get store name from URL
+        function getStoreName(url) {
+            return url.split('/shop/')[1].split('?')[0];
+        }
+
+        // Function to show the update form
+        function showUpdateForm() {
+            document.getElementById('updateForm').style.display = 'block';
+        }
+
+        // Update table on page load
+        updateTable();
+    </script>
+</body>
+</html>
