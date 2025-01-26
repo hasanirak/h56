@@ -5,7 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Etsy Sales Tracker</title>
     <style>
-        /* CSS styles remain unchanged */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: right;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        .store-link {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .store-link:hover {
+            text-decoration: underline;
+        }
+
+        .update-form {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -61,7 +173,141 @@
 
     <script>
         // Store data
-        let stores = JSON.parse(localStorage.getItem('stores')) || [];
+        let stores = JSON.parse(localStorage.getItem('stores')) || [
+            { 
+                url: "https://www.etsy.com/shop/DOTTIKI", 
+                previous: 2143, 
+                previousDate: getCurrentDate(), 
+                new: 2143, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/BattesimoLove", 
+                previous: 17574, 
+                previousDate: getCurrentDate(), 
+                new: 17608, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/ZuliKids", 
+                previous: 32957, 
+                previousDate: getCurrentDate(), 
+                new: 32973, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/Burbvus", 
+                previous: 17086, 
+                previousDate: getCurrentDate(), 
+                new: 17091, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/BabyBeauandBelle", 
+                previous: 15782, 
+                previousDate: getCurrentDate(), 
+                new: 15789, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/babypullover", 
+                previous: 6214, 
+                previousDate: getCurrentDate(), 
+                new: 6220, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/LaceChristening", 
+                previous: 3964, 
+                previousDate: getCurrentDate(), 
+                new: 3966, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/MariaPlatero", 
+                previous: 4191, 
+                previousDate: getCurrentDate(), 
+                new: 4196, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/AdoreBabyChristening", 
+                previous: 4875, 
+                previousDate: getCurrentDate(), 
+                new: 4877, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/Debragardner", 
+                previous: 12164, 
+                previousDate: getCurrentDate(), 
+                new: 12164, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/CaremourChristening", 
+                previous: 10642, 
+                previousDate: getCurrentDate(), 
+                new: 10647, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/FirstBlessings", 
+                previous: 4176, 
+                previousDate: getCurrentDate(), 
+                new: 4177, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/YasyaChristeningBaby", 
+                previous: 2207, 
+                previousDate: getCurrentDate(), 
+                new: 2208, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/CecysChildren", 
+                previous: 5998, 
+                previousDate: getCurrentDate(), 
+                new: 5999, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/Moniquesthingsshop", 
+                previous: 2515, 
+                previousDate: getCurrentDate(), 
+                new: 2515, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/IrishChristening", 
+                previous: 418, 
+                previousDate: getCurrentDate(), 
+                new: 418, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/daisysdaughter", 
+                previous: 702, 
+                previousDate: getCurrentDate(), 
+                new: 702, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/shop/MonikaVenika", 
+                previous: 2625, 
+                previousDate: getCurrentDate(), 
+                new: 2625, 
+                newDate: getCurrentDate() 
+            },
+            { 
+                url: "https://www.etsy.com/pl/shop/SueHillClothing", 
+                previous: 212, 
+                previousDate: getCurrentDate(), 
+                new: 212, 
+                newDate: getCurrentDate() 
+            }
+        ];
 
         // Function to get current date in YYYY-MM-DD format (without time)
         function getCurrentDate() {
@@ -214,11 +460,11 @@
 
                     // Process the imported data
                     stores = jsonData.slice(1).map(row => ({
-                        url: row[0] || "", // Ensure URL is a string
-                        previous: parseInt(row[1]) || 0, // Ensure Previous Sales is a number
-                        previousDate: row[2] || getCurrentDate(), // Ensure Previous Sales Date is a string
-                        new: parseInt(row[3]) || 0, // Ensure New Sales is a number
-                        newDate: row[4] || getCurrentDate() // Ensure New Sales Date is a string
+                        url: row[0],
+                        previous: row[1],
+                        previousDate: row[2],
+                        new: row[3],
+                        newDate: row[4]
                     }));
 
                     // Save to localStorage and update the table
